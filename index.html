@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Matika pro Aničku (0–20)</title>
+  <style>
+    :root {
+      --bg: #fdf2f8;
+      --card: #ffffff;
+      --primary: #8b5cf6;
+      --primary-dark: #7c3aed;
+      --accent: #f59e0b;
+      --green: #22c55e;
+      --pink: #ec4899;
+      --text: #1e293b;
+      --muted: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: linear-gradient(180deg, #fce7f3 0%, #e0f2fe 55%, #fef9c3 100%);
+      min-height: 100vh;
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 720px;
+      background: var(--card);
+      border-radius: 28px;
+      box-shadow: 0 14px 35px rgba(30, 41, 59, 0.12);
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Horní lišta */
+    .top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .title {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .giraffe-icon {
+      width: 46px;
+      height: 46px;
+      flex-shrink: 0;
+    }
+
+    .score-pill {
+      background: #fef3c7;
+      border: 2px solid #fbbf24;
+      color: #b45309;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Ovládací prvky */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .mode-group {
+      display: flex;
+      gap: 6px;
+      background: #f1f5f9;
+      padding: 5px;
+      border-radius: 16px;
+      flex-wrap: wrap;
+    }
+
+    .mode-btn {
+      border: none;
+      background: transparent;
+      padding: 8px 13px;
+      border-radius: 12px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      touch-action: manipulation;
+    }
+
+    .mode-btn.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 3px 8px rgba(139, 92, 246, 0.35);
+    }
+
+    .toggle-btn {
+      border: 2px solid #cbd5e1;
+      background: white;
+      padding: 8px 14px;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      font-family: inherit;
+      transition: 0.2s;
+      touch-action: manipulation;
+    }
+
+    .toggle-btn.on {
+      border-color: var(--green);
+      background: #f0fdf4;
+      color: #15803d;
+    }
+
+    /* Karta s příkladem */
+    .problem-card {
+      background: #f8fafc;
+      border: 3px solid #e2e8f0;
+      border-radius: 24px;
+      padding: 24px 16px;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .equation {
+      font-size: clamp(2.8rem, 8vw, 4.4rem);
+      font-weight: 900;
+      letter-spacing: 3px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .num-a { color: #3b82f6; }
+    .op { color: #f59e0b; }
+    .num-b { color: #ec4899; }
+
+    .answer-box {
+      min-width: 90px;
+      height: 76px;
+      padding: 0 14px;
+      border-radius: 18px;
+      border: 4px dashed #94a3b8;
+      background: white;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      color: #0f172a;
+      transition: all 0.2s;
+    }
+
+    .answer-box.correct {
+      border: 4px solid var(--green);
+      background: #dcfce7;
+      color: #15803d;
+      transform: scale(1.08);
+    }
+
+    .answer-box.wrong {
+      border: 4px solid #fb7185;
+      background: #fff1f2;
+      animation: shake 0.35s ease;
+    }
+
+    /* Vizuální nápověda (srdíčka po desítkách) */
+    .visual-helper {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 2px dashed #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .visual-helper.hidden {
+      display: none;
+    }
+
+    .hearts-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      max-width: 520px;
+    }
+
+    .ten-frame {
+      display: grid;
+      grid-template-columns: repeat(5, 30px);
+      grid-template-rows: repeat(2, 30px);
+      gap: 6px;
+      padding: 8px;
+      background: white;
+      border: 2px solid #cbd5e1;
+      border-radius: 14px;
+    }
+
+    .heart-slot {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .heart-svg {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
+
+    .heart-svg.blue { fill: #3b82f6; }
+    .heart-svg.pink { fill: #ec4899; }
+    .heart-svg.crossed { fill: #cbd5e1; }
+
+    .cross-mark {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ef4444;
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .helper-hint {
+      font-size: 0.98rem;
+      color: var(--muted);
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    /* Zpětná vazba */
+    .feedback {
+      min-height: 34px;
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+
+    .feedback.good { color: #16a34a; }
+    .feedback.try { color: #e11d48; }
+
+    /* Číselná klávesnice 0 - 20 */
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+
+    @media (max-width: 540px) {
+      .numpad {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+
+    .num-btn {
+      border: none;
+      background: #f5f3ff;
+      border-bottom: 4px solid #ddd6fe;
+      color: #5b21b6;
+      font-size: 1.4rem;
+      font-weight: 800;
+      padding: 12px 0;
+      border-radius: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: transform 0.08s, background 0.15s;
+      touch-action: manipulation;
+    }
+
+    .num-btn:hover {
+      background: #ede9fe;
+    }
+
+    .num-btn:active {
+      transform: translateY(2px);
+      border-bottom-width: 2px;
+    }
+
+    /* Konfety */
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      pointer-events: none;
+      animation: fall 0.9s ease-out forwards;
+    }
+
+    @keyframes fall {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(220px) rotate(360deg); opacity: 0; }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="top-bar">
+      <div class="title">
+        <!-- Roztomilý obrázek žirafy -->
+        <svg class="giraffe-icon" viewBox="0 0 64 64" aria-hidden="true">
+          <!-- Růžky -->
+          <line x1="24" y1="18" x2="19" y2="7" stroke="#b45309" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="19" cy="7" r="4" fill="#92400e"/>
+          <line x1="40" y1="18" x2="45" y2="7" stroke="#b45309" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="45" cy="7" r="4" fill="#92400e"/>
+          <!-- Ouška -->
+          <ellipse cx="12" cy="25" rx="7" ry="4" transform="rotate(-20 12 25)" fill="#fbbf24" stroke="#f59e0b" stroke-width="1.5"/>
+          <ellipse cx="52" cy="25" rx="7" ry="4" transform="rotate(20 52 25)" fill="#fbbf24" stroke="#f59e0b" stroke-width="1.5"/>
+          <!-- Hlava -->
+          <ellipse cx="32" cy="35" rx="17" ry="20" fill="#fbbf24"/>
+          <!-- Flíčky -->
+          <circle cx="23" cy="24" r="3.2" fill="#b45309"/>
+          <circle cx="41" cy="23" r="2.8" fill="#b45309"/>
+          <circle cx="33" cy="19" r="2.3" fill="#b45309"/>
+          <!-- Oči -->
+          <circle cx="24.5" cy="32" r="2.8" fill="#1e293b"/>
+          <circle cx="25.3" cy="31.2" r="0.9" fill="#ffffff"/>
+          <circle cx="39.5" cy="32" r="2.8" fill="#1e293b"/>
+          <circle cx="40.3" cy="31.2" r="0.9" fill="#ffffff"/>
+          <!-- Tvářičky -->
+          <ellipse cx="19" cy="37" rx="3" ry="1.8" fill="#f472b6" opacity="0.55"/>
+          <ellipse cx="45" cy="37" rx="3" ry="1.8" fill="#f472b6" opacity="0.55"/>
+          <!-- Čumáček -->
+          <ellipse cx="32" cy="45.5" rx="13" ry="9" fill="#fde68a"/>
+          <circle cx="27" cy="43.5" r="1.7" fill="#92400e"/>
+          <circle cx="37" cy="43.5" r="1.7" fill="#92400e"/>
+          <path d="M26 48.5 Q32 53 38 48.5" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span>Matika pro Aničku</span>
+      </div>
+      <div class="score-pill" title="Nasbírané hvězdičky">⭐ <span id="stars">0</span></div>
+    </div>
+
+    <div class="controls">
+      <div class="mode-group">
+        <button class="mode-btn active" data-mode="add">+ Sčítání</button>
+        <button class="mode-btn" data-mode="sub">− Odčítání</button>
+        <button class="mode-btn" data-mode="mix">+ / − Obojí</button>
+      </div>
+      <button class="toggle-btn on" id="toggleVisual">❤️ Srdíčka: ZAP</button>
+    </div>
+
+    <div class="problem-card">
+      <div class="equation">
+        <span class="num-a" id="numA">3</span>
+        <span class="op" id="op">+</span>
+        <span class="num-b" id="numB">4</span>
+        <span>=</span>
+        <span class="answer-box" id="answerBox">?</span>
+      </div>
+
+      <div class="visual-helper" id="visualHelper">
+        <div class="hearts-container" id="heartsContainer"></div>
+        <div class="helper-hint" id="helperHint"></div>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback">Aničko, vyber správné číslo dole!</div>
+
+    <div class="numpad" id="numpad"></div>
+  </div>
+
+  <script>
+    const state = {
+      mode: "add",      // "add" | "sub" | "mix"
+      showHearts: true,
+      a: 0,
+      b: 0,
+      op: "+",
+      answer: 0,
+      stars: 0,
+      locked: false,
+      typedBuffer: ""
+    };
+
+    const el = {
+      app: document.getElementById("app"),
+      stars: document.getElementById("stars"),
+      numA: document.getElementById("numA"),
+      op: document.getElementById("op"),
+      numB: document.getElementById("numB"),
+      answerBox: document.getElementById("answerBox"),
+      visualHelper: document.getElementById("visualHelper"),
+      heartsContainer: document.getElementById("heartsContainer"),
+      helperHint: document.getElementById("helperHint"),
+      feedback: document.getElementById("feedback"),
+      numpad: document.getElementById("numpad"),
+      toggleVisual: document.getElementById("toggleVisual")
+    };
+
+    const praises = [
+      "Skvělá práce, Aničko! 🎉",
+      "Výborně! Jsi šikulka! 🌟",
+      "Super, Aničko! 🚀",
+      "Paráda! Jen tak dál! 🎈",
+      "Trefa! Jsi hvězda! ⭐",
+      "Moc šikovná! 🙌"
+    ];
+
+    // České skloňování pro srdíčka (střední rod)
+    function srdickoWord(n) {
+      if (n === 1) return "srdíčko";
+      if (n >= 2 && n <= 4) return "srdíčka";
+      return "srdíček";
+    }
+
+    function colorAdjNeuter(n, singular, few, many) {
+      if (n === 1) return singular;
+      if (n >= 2 && n <= 4) return few;
+      return many;
+    }
+
+    function createHeartSVG(colorClass) {
+      const svgNS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("viewBox", "0 0 24 24");
+      svg.setAttribute("class", `heart-svg ${colorClass}`);
+
+      const path = document.createElementNS(svgNS, "path");
+      path.setAttribute(
+        "d",
+        "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 " +
+        "2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09" +
+        "C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5" +
+        "c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+      );
+      svg.appendChild(path);
+      return svg;
+    }
+
+    // Tlačítka 0 až 20
+    function buildNumpad() {
+      el.numpad.innerHTML = "";
+      for (let i = 0; i <= 20; i++) {
+        const btn = document.createElement("button");
+        btn.className = "num-btn";
+        btn.textContent = i;
+        btn.addEventListener("click", () => checkAnswer(i));
+        el.numpad.appendChild(btn);
+      }
+    }
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function nextProblem() {
+      state.locked = false;
+      state.typedBuffer = "";
+      el.answerBox.textContent = "?";
+      el.answerBox.className = "answer-box";
+      el.feedback.textContent = "Aničko, vyber správné číslo dole!";
+      el.feedback.className = "feedback";
+
+      const chosenOp =
+        state.mode === "mix" ? (Math.random() < 0.5 ? "+" : "-") :
+        state.mode === "add" ? "+" : "-";
+
+      state.op = chosenOp;
+
+      if (chosenOp === "+") {
+        // Výsledek vždy mezi 0 a 20
+        const sum = randInt(1, 20);
+        state.a = randInt(0, sum);
+        state.b = sum - state.a;
+        state.answer = sum;
+      } else {
+        // Všechna čísla i výsledek vždy mezi 0 a 20
+        state.a = randInt(1, 20);
+        state.b = randInt(0, state.a);
+        state.answer = state.a - state.b;
+      }
+
+      el.numA.textContent = state.a;
+      el.op.textContent = state.op === "+" ? "+" : "−";
+      el.numB.textContent = state.b;
+
+      renderHearts();
+    }
+
+    function renderHearts() {
+      el.heartsContainer.innerHTML = "";
+
+      const totalNeeded = state.op === "+" ? state.a + state.b : state.a;
+      const frameCount = totalNeeded > 10 ? 2 : 1;
+
+      const slots = [];
+      for (let f = 0; f < frameCount; f++) {
+        const frame = document.createElement("div");
+        frame.className = "ten-frame";
+        for (let s = 0; s < 10; s++) {
+          const slot = document.createElement("div");
+          slot.className = "heart-slot";
+          frame.appendChild(slot);
+          slots.push(slot);
+        }
+        el.heartsContainer.appendChild(frame);
+      }
+
+      if (state.op === "+") {
+        for (let i = 0; i < state.a; i++) {
+          slots[i].appendChild(createHeartSVG("blue"));
+        }
+        for (let i = state.a; i < state.a + state.b; i++) {
+          slots[i].appendChild(createHeartSVG("pink"));
+        }
+
+        const modre = colorAdjNeuter(state.a, "modré", "modrá", "modrých");
+        const ruzove = colorAdjNeuter(state.b, "růžové", "růžová", "růžových");
+        el.helperHint.textContent =
+          `Spočítej ${state.a} ${modre} ${srdickoWord(state.a)} a ${state.b} ${ruzove} ${srdickoWord(state.b)} dohromady!`;
+      } else {
+        const remaining = state.a - state.b;
+        for (let i = 0; i < state.a; i++) {
+          if (i < remaining) {
+            slots[i].appendChild(createHeartSVG("blue"));
+          } else {
+            slots[i].appendChild(createHeartSVG("crossed"));
+            const cross = document.createElement("span");
+            cross.className = "cross-mark";
+            cross.textContent = "✕";
+            slots[i].appendChild(cross);
+          }
+        }
+
+        const takeAwayText = state.b === 0
+          ? "Když žádné neškrtneme"
+          : `Když ${state.b} škrtneme`;
+        el.helperHint.textContent =
+          `Máš ${state.a} ${srdickoWord(state.a)}. ${takeAwayText}, kolik modrých zůstane?`;
+      }
+    }
+
+    function spawnConfetti() {
+      const colors = ["#8b5cf6", "#ec4899", "#22c55e", "#f59e0b", "#3b82f6"];
+      for (let i = 0; i < 24; i++) {
+        const c = document.createElement("div");
+        c.className = "confetti";
+        c.style.left = randInt(10, 90) + "%";
+        c.style.top = randInt(10, 40) + "%";
+        c.style.background = colors[randInt(0, colors.length - 1)];
+        c.style.animationDuration = (0.6 + Math.random() * 0.5) + "s";
+        el.app.appendChild(c);
+        setTimeout(() => c.remove(), 1100);
+      }
+    }
+
+    function checkAnswer(val) {
+      if (state.locked) return;
+
+      el.answerBox.textContent = val;
+
+      if (val === state.answer) {
+        state.locked = true;
+        state.stars++;
+        el.stars.textContent = state.stars;
+        el.answerBox.className = "answer-box correct";
+        el.feedback.textContent = praises[randInt(0, praises.length - 1)];
+        el.feedback.className = "feedback good";
+        spawnConfetti();
+        setTimeout(nextProblem, 1300);
+      } else {
+        el.answerBox.className = "answer-box wrong";
+        el.feedback.textContent =
+          val < state.answer
+            ? "Skoro! Zkus větší číslo, Aničko 💪"
+            : "Skoro! Zkus menší číslo, Aničko 💪";
+        el.feedback.className = "feedback try";
+        setTimeout(() => {
+          if (!state.locked) el.answerBox.className = "answer-box";
+        }, 450);
+      }
+    }
+
+    // Přepínání režimů
+    document.querySelectorAll(".mode-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.mode = btn.dataset.mode;
+        nextProblem();
+      });
+    });
+
+    // Zapnutí/vypnutí srdíček
+    el.toggleVisual.addEventListener("click", () => {
+      state.showHearts = !state.showHearts;
+      el.visualHelper.classList.toggle("hidden", !state.showHearts);
+      el.toggleVisual.classList.toggle("on", state.showHearts);
+      el.toggleVisual.textContent = state.showHearts ? "❤️ Srdíčka: ZAP" : "🙈 Srdíčka: VYP";
+    });
+
+    // Podpora klávesnice (čísla + Enter)
+    document.addEventListener("keydown", (e) => {
+      if (state.locked) return;
+      if (e.key >= "0" && e.key <= "9") {
+        const next = state.typedBuffer + e.key;
+        if (Number(next) <= 20) {
+          state.typedBuffer = next;
+          el.answerBox.textContent = state.typedBuffer;
+        }
+      } else if (e.key === "Backspace") {
+        state.typedBuffer = state.typedBuffer.slice(0, -1);
+        el.answerBox.textContent = state.typedBuffer || "?";
+      } else if (e.key === "Enter" && state.typedBuffer !== "") {
+        checkAnswer(Number(state.typedBuffer));
+        state.typedBuffer = "";
+      }
+    });
+
+    buildNumpad();
+    nextProblem();
+  </script>
+</body>
+</html>
